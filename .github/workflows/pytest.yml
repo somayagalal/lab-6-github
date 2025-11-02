@@ -4,15 +4,39 @@ on: [push, pull_request]
 
 jobs:
   test:
+    # 1. DEFINE the matrix strategy
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+
+    # 2. NAME the job using the current OS in the matrix
+    name: Test on ${{ matrix.os }}
+    
+    # 3. USE the matrix variable for the runner (must be indented same as strategy)
     runs-on: ${{ matrix.os }}
-    steps:  
+
+    # 4. Define steps
+    steps: 
+      # Checkout step (always needed)
+      - uses: actions/checkout@v4
+      
+      # Setup Python (assuming you are still using Python)
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' # Or your desired version
+
+      # Install dependencies (must include pytest)
+      - name: Install dependencies
+        run: pip install pytest
+
+      # Run pytest (generate junit xml)
       - name: Run pytest (generate junit xml)
-        run: pytest -v  --junitxml=pytest-report.xml
+        run: pytest -v --junitxml=pytest-report.xml
+        
+      # Upload test report artifact
       - name: Upload test report artifact
         uses: actions/upload-artifact@v4
         with:
           name: pytest-report_${{ matrix.os }}
-          path: pytest-report.xml 
+          path: pytest-report.xml
